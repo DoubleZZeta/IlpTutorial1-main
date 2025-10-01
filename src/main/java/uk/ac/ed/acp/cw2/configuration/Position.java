@@ -4,21 +4,27 @@ import java.math.BigDecimal;
 
 public class Position
 {
-    private final BigDecimal latitude;
-    private final BigDecimal longitude;
+    private final BigDecimal lat;
+    private final BigDecimal lng;
     public Position (BigDecimal lng, BigDecimal lat)
     {
-        this.latitude = lng;
-        this.longitude = lat;
+
+        this.lat = lng;
+        this.lng = lat;
     }
 
-    public BigDecimal getLatitude()
+    public BigDecimal getLat()
     {
-        return latitude;
+        return lat;
     }
 
-    public BigDecimal getLongitude()
+    public BigDecimal getLng()
     {
-        return longitude;
+        return lng;
+    }
+
+    public String toString()
+    {
+        return lat.toString() + " " + lng.toString();
     }
 }
