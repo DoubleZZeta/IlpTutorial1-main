@@ -1,5 +1,8 @@
 package uk.ac.ed.acp.cw2.configuration;
 
+import lombok.Getter;
+
+@Getter
 public class Plane
 {
     private final Position position;
@@ -11,13 +14,4 @@ public class Plane
         this.region = region;
     }
 
-    public Position getPosition()
-    {
-        return position;
-    }
-
-    public Region getRegion()
-    {
-        return region;
-    }
 }

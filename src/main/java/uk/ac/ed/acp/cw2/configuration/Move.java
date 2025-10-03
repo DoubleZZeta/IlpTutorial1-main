@@ -1,5 +1,8 @@
 package uk.ac.ed.acp.cw2.configuration;
 
+import lombok.Getter;
+
+@Getter
 public class Move
 {
     private final Position start;
@@ -11,13 +14,4 @@ public class Move
         this.angle = angle;
     }
 
-    public Position getStart()
-    {
-        return start;
-    }
-
-    public double getAngle()
-    {
-        return angle;
-    }
 }

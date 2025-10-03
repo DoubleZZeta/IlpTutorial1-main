@@ -9,7 +9,10 @@ import uk.ac.ed.acp.cw2.configuration.*;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Controller class that handles various HTTP endpoints for the application.
@@ -18,8 +21,7 @@ import java.net.URL;
  */
 @RestController()
 @RequestMapping("/api/v1")
-public class ServiceController
-{
+public class ServiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
     private static final BigDecimal unit = new BigDecimal("0.00015");
@@ -28,23 +30,20 @@ public class ServiceController
     public URL serviceUrl;
 
     @GetMapping("/")
-    public String index()
-    {
+    public String index() {
         return "<html><body>" +
                 "<h1>Welcome from ILP</h1>" +
-                "<h4>ILP-REST-Service-URL:</h4> <a href=\"" + serviceUrl + "\" target=\"_blank\"> " + serviceUrl+ " </a>" +
+                "<h4>ILP-REST-Service-URL:</h4> <a href=\"" + serviceUrl + "\" target=\"_blank\"> " + serviceUrl + " </a>" +
                 "</body></html>";
     }
 
     @GetMapping("/uid")
-    public String uid()
-    {
+    public String uid() {
         return "s2487866";
     }
 
     @PostMapping("/distanceTo")
-    public Double distanceTo(@RequestBody Line line)
-    {
+    public Double distanceTo(@RequestBody Line line) {
 
         Position position1 = line.getPosition1();
         Position position2 = line.getPosition2();
@@ -55,8 +54,7 @@ public class ServiceController
     }
 
     @PostMapping("/isCloseTo")
-    public boolean isCloseTo(@RequestBody Line line)
-    {
+    public boolean isCloseTo(@RequestBody Line line) {
 
         Position position1 = line.getPosition1();
         Position position2 = line.getPosition2();
@@ -67,8 +65,7 @@ public class ServiceController
     }
 
     @PostMapping("/nextPosition")
-    public Position nextPosition(@RequestBody Move move)
-    {
+    public Position nextPosition(@RequestBody Move move) {
         Position position = move.getStart();
         double angle = move.getAngle();
 
@@ -87,23 +84,30 @@ public class ServiceController
     @PostMapping("/isInRegion")
     public boolean isInRegion(@RequestBody Plane plane)
     {
-        return true; //TODO finish this
+        // A ray from the point to the right
+        int count = 0;
+
+        ArrayList<Line> lines = calculateRegionLines(plane.getRegion().getVertices());
+        Position vertex = plane.getPosition();
+
+        for (Line line : lines)
+        {
+            if (isSegmentIntersectWithRay(vertex, line))
+            {
+                count++;
+            }
+        }
+
+        return count % 2 != 0;
     }
 
-    @PostMapping("/test")
-    public String test(@RequestBody Position position)
-    {
-        return position.toString();
-    }
-
-    private BigDecimal calculateDistance(Position position1, Position position2)
-    {
+    private BigDecimal calculateDistance(Position position1, Position position2) {
         MathContext mathContext = new MathContext(10);
 
-        BigDecimal lat1 =  position1.getLat();
-        BigDecimal lng1 =  position1.getLng();
-        BigDecimal lat2 =  position2.getLat();
-        BigDecimal lng2 =  position2.getLng();
+        BigDecimal lat1 = position1.getLat();
+        BigDecimal lng1 = position1.getLng();
+        BigDecimal lat2 = position2.getLat();
+        BigDecimal lng2 = position2.getLng();
 
         BigDecimal latDiff = lat2.subtract(lat1);
         BigDecimal lngDiff = lng2.subtract(lng1);
@@ -112,6 +116,38 @@ public class ServiceController
         BigDecimal distSqr = latSqr.add(lngSqr);
         return distSqr.sqrt(mathContext);
     }
+
+    private ArrayList<Line> calculateRegionLines(ArrayList<Position> positions) {
+        positions.add(positions.getFirst());
+        ArrayList<Line> lines = new ArrayList<>();
+        for (int i = 0; i < positions.size() - 1; i++) {
+            Position position1 = positions.get(i);
+            Position position2 = positions.get(i + 1);
+            lines.add(new Line(position1, position2));
+        }
+        return lines;
+    }
+
+    private boolean isSegmentIntersectWithRay(Position position, Line line) {
+        Position right = line.getPosition2();
+        Position up = line.getUpperPosition();
+        Position down = line.getLowerPosition();
+
+        boolean SegmentOnRight = true;
+        boolean SegmentIntersectRay = true;
+
+        if (right.getLng().compareTo(position.getLng()) < 0)
+        {
+            SegmentOnRight = false;
+        }
+        if (up.getLat().compareTo(position.getLat()) < 0 || down.getLat().compareTo(position.getLat()) > 0)
+        {
+            SegmentIntersectRay = false;
+        }
+
+        return SegmentOnRight && SegmentIntersectRay;
+    }
+
 }
 
 
